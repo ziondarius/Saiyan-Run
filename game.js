@@ -242,11 +242,11 @@
 
   function getAnimState() {
     if (!player.onGround) return "jump";
-    if (Math.abs(player.vx) > 24) return "walk";
+    if (Math.abs(player.vx) > 24) return "run";
     return "idle";
   }
 
-  function drawBackground(bgSky, ocean) {
+  function drawBackground(bgSky) {
     const skyScale = 2;
     const skyTileW = bgSky.width * skyScale;
     const skyTileH = bgSky.height * skyScale;
@@ -257,18 +257,6 @@
       for (let x = skyStartX; x < VIEW_WIDTH + skyTileW; x += skyTileW) {
         ctx.drawImage(bgSky, x, y, skyTileW, skyTileH);
       }
-    }
-
-    const oceanScale = 2.4;
-    const oceanW = ocean.width * oceanScale;
-    const oceanH = ocean.height * oceanScale;
-    const oceanY = VIEW_HEIGHT - oceanH + 110;
-    const oceanStartX = -((camera.x * 0.45) % oceanW) - oceanW;
-
-    for (let x = oceanStartX; x < VIEW_WIDTH + oceanW; x += oceanW) {
-      ctx.globalAlpha = 0.9;
-      ctx.drawImage(ocean, x, oceanY, oceanW, oceanH);
-      ctx.globalAlpha = 1;
     }
   }
 
@@ -315,7 +303,7 @@
     const facing = player.facing;
     const frames = animations[state][facing];
 
-    const frameDur = state === "walk" ? 0.09 : 0.16;
+    const frameDur = state === "run" ? 0.09 : 0.16;
     player.frameTime += deltaTime;
 
     if (player.frameTime >= frameDur) {
@@ -354,7 +342,7 @@
   let lastAnimState = "idle";
 
   function loop(time, resources) {
-    const { tileSheet, bgSky, ocean, animations } = resources;
+    const { tileSheet, bgSky, animations } = resources;
 
     if (!lastTime) lastTime = time;
     deltaTime = Math.min(0.033, (time - lastTime) / 1000);
@@ -364,7 +352,7 @@
     updateCamera();
 
     ctx.clearRect(0, 0, VIEW_WIDTH, VIEW_HEIGHT);
-    drawBackground(bgSky, ocean);
+    drawBackground(bgSky);
 
     ctx.save();
     drawTiles(tileSheet);
@@ -380,11 +368,10 @@
   Promise.all([
     loadImage("Sprites/tilesetOpenGame.png"),
     loadImage("Sprites/tilesetOpenGameBackground.png"),
-    loadImage("Sprites/Ocean_SpriteSheet.png"),
     loadFrameSet("Sprites/Cellin Base/standard/idle/right", 2),
     loadFrameSet("Sprites/Cellin Base/standard/idle/left", 2),
-    loadFrameSet("Sprites/Cellin Base/standard/walk/right", 9),
-    loadFrameSet("Sprites/Cellin Base/standard/walk/left", 9),
+    loadFrameSet("Sprites/Cellin Base/standard/run/right", 8),
+    loadFrameSet("Sprites/Cellin Base/standard/run/left", 8),
     loadFrameSet("Sprites/Cellin Base/standard/jump/right", 5),
     loadFrameSet("Sprites/Cellin Base/standard/jump/left", 5)
   ])
@@ -392,18 +379,17 @@
       const [
         tileSheet,
         bgSky,
-        ocean,
         idleRight,
         idleLeft,
-        walkRight,
-        walkLeft,
+        runRight,
+        runLeft,
         jumpRight,
         jumpLeft
       ] = loaded;
 
       const animations = {
         idle: { right: idleRight, left: idleLeft },
-        walk: { right: walkRight, left: walkLeft },
+        run: { right: runRight, left: runLeft },
         jump: { right: jumpRight, left: jumpLeft }
       };
 
@@ -411,7 +397,6 @@
         loop(t, {
           tileSheet,
           bgSky,
-          ocean,
           animations
         })
       );
